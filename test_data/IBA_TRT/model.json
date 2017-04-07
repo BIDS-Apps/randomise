@@ -1,1 +1,0 @@
-{"contrasts": ["+age", "-age", "sex[T.M] > sex[T.F]", "sex[T.F] > sex[T.M]"], "model": "sex+age"}

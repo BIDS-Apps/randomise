@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import argparse
 import os
 import sys
@@ -56,11 +57,9 @@ def model_setup(in_model_file, in_bids_dir, model_files_outdir):
             if not f_dict['ses']:
                 f_dict['ses'] = '1'
 
-            f_participant_id = "_".join(["-".join(["sub", f_dict["sub"]]), "-".join(["ses", f_dict["ses"]])])
-
             # find the row of the pheno_df that corresponds to the file and save it to pheno_key_list
-            participant_index = [index for index, file_id in enumerate(pheno_df["file_id"])
-                                 if file_id == f_participant_id]
+            participant_index = [index for index, participant_id in enumerate(pheno_df["participant_id"])
+                                 if participant_id == "-".join(["sub", f_dict["sub"]])]
 
             if len(participant_index) == 0:
                 print("Could not find entry in phenotype file for {0}, dropping it.".format(
