@@ -72,7 +72,6 @@ def model_setup(in_model_file, in_bids_dir, model_files_outdir):
                 pheno_key_list.append(participant_index[0])
                 t_file_list.append(os.path.join(root, filename))
 
-
     # now create the design.mat file
 
     # remove participant_id column
