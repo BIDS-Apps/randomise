@@ -143,7 +143,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_iterations', help='Number of iterations used by randomise.',
                         default=10000, type=int)
     parser.add_argument('--num_processors', help='Number of processors used at a time for randomise',
-                        default=2, type=int)
+                        default=1, type=int)
     parser.add_argument('-v', '--version', action='version',
                         version='BIDS-App example version {}'.format(__version__))
 
