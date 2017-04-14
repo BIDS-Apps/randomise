@@ -143,7 +143,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_iterations', help='Number of iterations used by randomise.',
                         default=10000, type=int)
     parser.add_argument('--num_processors', help='Number of processors used at a time for randomise',
-                        default=1, type=int)
+                        default=2, type=int)
     parser.add_argument('-v', '--version', action='version',
                         version='BIDS-App example version {}'.format(__version__))
 
@@ -197,7 +197,7 @@ if __name__ == "__main__":
         import nipype.pipeline.engine as pe
         import nipype.interfaces.fsl as fsl
         import nipype.interfaces.io as nio
-
+        import nipype.interfaces.utility as niu
         wf = pe.Workflow(name='wf_randomize')
         wf.base_dir = working_dir
 
@@ -217,6 +217,10 @@ if __name__ == "__main__":
 
         # We want to parallelize so that each contrast is processed
         # separately
+        def select(input_list):
+            out_file = input_list[0]
+            return out_file
+
         for current_contrast in range(1, num_contrasts + 1):
             # use randomize to use perform permutation test for contrast
             randomise = pe.Node(interface=fsl.Randomise(), name='fsl_randomise_{0}'.format(current_contrast))
@@ -230,11 +234,21 @@ if __name__ == "__main__":
             randomise.inputs.tfce = True
             wf.connect(merge, 'merged_file', randomise, 'in_file')
 
+            select_t_corrected = pe.Node(niu.Function(input_names=["input_list"],
+                                               output_names=['out_file'],
+                                               function=select),
+                                               name = 'select_t_cor{0}'.format(current_contrast))
+
+            wf.connect(randomise, "t_corrected_p_files", select_t_corrected, "input_list")
+
+
             # threshold the resulting t corrected p file
             thresh = pe.Node(interface=fsl.Threshold(),
                              name='fsl_threshold_contrast_{0}'.format(current_contrast))
             thresh.inputs.thresh = 0.95
-            wf.connect(randomise, "t_corrected_p_files", thresh, "in_file")
+            wf.connect(select_t_corrected, "out_file", thresh, "in_file")
+            thresh_output_file = 'rando_pipe_thresh_tstat{0}.nii.gz'.format(current_contrast)
+            thresh.inputs.out_file = thresh_output_file
 
             # binarize the result of applying the threshold to get a mask
             thresh_bin = pe.Node(interface=fsl.maths.MathsCommand(),
@@ -242,10 +256,17 @@ if __name__ == "__main__":
             thresh_bin.inputs.args = '-bin'
             wf.connect(thresh, "out_file", thresh_bin, "in_file")
 
+            select_t_stat = pe.Node(niu.Function(input_names=["input_list"],
+                                                      output_names=['out_file'],
+                                                      function=select),
+                                         name='select_item_t_stat{0}'.format(current_contrast))
+
+            wf.connect(randomise, "tstat_files", select_t_stat, "input_list")
+
             # apply calculated mask to the statistic image
             apply_mask = pe.Node(interface=fsl.ApplyMask(),
                                  name='fsl_applymask_contrast_{0}'.format(current_contrast))
-            wf.connect(randomise, 'tstat_files', apply_mask, 'in_file')
+            wf.connect(select_t_stat, 'out_file', apply_mask, 'in_file')
             wf.connect(thresh_bin, 'out_file', apply_mask, 'mask_file')
 
             # cluster the results to get a report of the findings
@@ -273,4 +294,4 @@ if __name__ == "__main__":
             wf.connect(cluster, 'pval_file', datasink, 'output.@pval_file')
             wf.connect(cluster, 'size_file', datasink, 'output.@size_file')
 
-            wf.run(plugin="MultiProc", plugin_args={"n_procs": num_processors})
+        wf.run(plugin="MultiProc", plugin_args={"n_procs": num_processors})
