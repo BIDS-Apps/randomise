@@ -2,11 +2,13 @@ FROM bids/base_fsl
 
 MAINTAINER Cameron Craddock <cameron.craddock@childmind.org>
 
+RUN apt-get update -y && apt-get install -y curl build-essential
 RUN curl -sSLO http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh && \
     bash Miniconda2-latest-Linux-x86_64.sh -b && \
     /root/miniconda2/bin/conda update -yq conda && \
-    /root/miniconda2/bin/conda install -y -c conda-forge scipy nipype pandas patsy && \
-    /root/miniconda2/bin/conda clean -y --all
+    /root/miniconda2/bin/conda install -y pip scipy traits && \
+    /root/miniconda2/bin/pip install  nibabel nitime pyyaml pandas html5lib==1.0b8 patsy && \
+    /root/miniconda2/bin/conda install -y -c conda-forge nipype=0.12.1
 
 
 # add all of the environment variables for fsl
