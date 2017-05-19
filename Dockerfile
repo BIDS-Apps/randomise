@@ -8,7 +8,21 @@ MAINTAINER John Pellman <john.pellman@childmind.org>
     #&& bash cpac_install.sh
 
 RUN sudo apt-get update && sudo apt-get upgrade -y && apt-get -y install python-dev python-pip 
-RUN pip install pandas patsy
+RUN pip install -ipython 
+#RUN pip install NumPy
+RUN pip install pyparsing
+RUN pip install setuptools
+RUN sudo apt-get install -y python-dateutil 
+RUN pip install cycler 
+RUN pip install pytz
+RUN sudo apt-get update && sudo apt-get install -y python-matplotlib
+RUN sudo apt-get install -y python-scipy
+RUN pip install scikit-learn 
+RUN pip install nibabel
+RUN sudo apt-get install -y python-nipype
+RUN pip install pandas patsy 
+RUN pip install -U --user nilearn
+
 
 ENV FSLDIR /usr/share/fsl/5.0
 ENV FSLOUTPUTTYPE NIFTI_GZ
@@ -20,6 +34,6 @@ ENV LD_LIBRARY_PATH /usr/lib/fsl/5.0:${LD_LIBRARY_PATH}
 ENV PATH ${FSLDIR}/bin:/home/ubuntu/bin:${PATH} 
 
 COPY create_flame_model_files.py /code/create_flame_model_files.py
-COPY run.py /code/run.py
+COPY run_nilearn.py /code/run_nilearn.py
 
-ENTRYPOINT ["/code/run.py"]
+ENTRYPOINT ["/code/run_nilearn.py"]
