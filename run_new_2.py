@@ -154,9 +154,9 @@ if __name__ == "__main__":
     parser.add_argument('model_file', help='JSON file describing the model and contrasts'
                         'that should be.')
     parser.add_argument('--num_iterations', help='Number of iterations used by randomise.',
-                        default=10, type=int)
+                        default=10000, type=int)
     parser.add_argument('--num_processors', help='Number of processors used at a time for randomise',
-                        default=2, type=int)
+                        default=1, type=int)
     parser.add_argument('-v', '--version', action='version',
                         version='BIDS-App example version {}'.format(__version__))
 
@@ -182,11 +182,11 @@ if __name__ == "__main__":
         print("Could not find bids directory {0}".format(bids_dir))
         sys.exit(1)
 
-    num_iterations = 10
+    num_iterations = 10000
     if args.num_iterations:
         num_iterations = int(args.num_iterations)
 
-    num_processors = 2
+    num_processors = 1
     if args.num_processors:
         num_processors = int(args.num_processors)
 
