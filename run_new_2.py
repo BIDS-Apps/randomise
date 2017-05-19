@@ -66,6 +66,8 @@ def model_setup(in_model_file, in_bids_dir, model_files_outdir):
 
             f_participant_name = "-".join(["sub", f_dict["sub"]])
 
+            f_participant_name = "-".join(["sub", f_dict["sub"]])
+
             # find the row of the pheno_df that corresponds to the file and save it to pheno_key_list
             participant_index = [index for index, participant_id in enumerate(pheno_df["participant_id"])
                                  if participant_id == f_participant_name]
@@ -211,7 +213,7 @@ if __name__ == "__main__":
         import nipype.interfaces.fsl as fsl
         import nipype.interfaces.io as nio
         import nipype.interfaces.utility as niu
-
+        
         wf = pe.Workflow(name='wf_randomize')
         wf.base_dir = working_dir
 
@@ -235,6 +237,7 @@ if __name__ == "__main__":
             out_file = input_list[0]
             return out_file
 
+
         def nilearn_plot(in_file, out_file, title, template):
             import os
             from nilearn import plotting
@@ -242,7 +245,7 @@ if __name__ == "__main__":
             plotting.plot_stat_map(in_file, bg_img = template, output_file= out_file, display_mode='ortho', colorbar=True, title= title)
             return out_file
 
-        for current_contrast in contrast_names_dict:#range(1, num_contrasts + 1):
+        for current_contrast in contrast_names_dict:
             # use randomize to use perform permutation test for contrast
             randomise = pe.Node(interface=fsl.Randomise(), name='fsl_randomise_{0}'.format(current_contrast))
             wf.connect(mask, 'out_file', randomise, 'mask')
@@ -299,7 +302,8 @@ if __name__ == "__main__":
             cluster.inputs.out_threshold_file = "randomise_out_contrast_{0}".format(current_contrast)
             cluster.inputs.terminal_output = 'file'
             wf.connect(apply_mask, 'out_file', cluster, 'in_file')
-
+            
+            #plot results with nilearn
             nilearn_plotting = pe.Node(niu.Function(input_names= ['in_file','out_file','title', 'template'],
                                                 output_names= ['out_file'],
                                                 function= nilearn_plot),
@@ -324,5 +328,4 @@ if __name__ == "__main__":
             wf.connect(cluster, 'pval_file', datasink, 'output.@pval_file')
             wf.connect(cluster, 'size_file', datasink, 'output.@size_file')
             wf.connect(nilearn_plotting, 'out_file', datasink, 'output.@out_file')
-            
         wf.run(plugin="MultiProc", plugin_args={"n_procs": num_processors})
